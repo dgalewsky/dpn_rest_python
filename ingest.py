@@ -28,8 +28,16 @@ print ("Ingesting: " + obj_path)
 if os.path.isfile(obj_path) == False :
     print("Error: " + obj_path + " does not exit")
     sys.exit(0)
+    
+# While we are here - we might as well compute the size of the bag
+
+file_size = os.path.getsize(obj_path)
+
+print("Size of file: " + obj_path + " : "  + str(file_size))
 
 print("REST Server URL: " + config['url'])
+
+# Create a dpn-rest client
 
 myclient = client.Client(dpn_rest_settings, dpn_rest_settings.DEV)
 
@@ -41,5 +49,17 @@ except Exception as ex:
     print("Error: " +  str(ex))
     sys.exit(0)
 
+# If all goes well - print the response.
+
 pprint.pprint(response)
 
+# Create a transfer
+
+try:
+    # obj_id, bag_size, username, fixity
+    response = myclient.create_transfer_request(obj_id, 1024, 'aptrust', 'ou812-fixity')
+except Exception as ex:  
+    print("Error: " +  str(ex))
+    sys.exit(0)
+    
+pprint.pprint(response) 
