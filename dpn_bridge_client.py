@@ -12,6 +12,10 @@ import dpn_rest_settings
 import hashlib
 import pprint
 import requests
+import subprocess, logging
+
+logging.basicConfig(filename='dpn.log',level=logging.DEBUG)
+logging.captureWarnings(True)
 
 # globals
 BRIDGE_HOST = 'duracloud.tdl.org'
@@ -22,7 +26,8 @@ BRIDGE_TMP_LOCATION = '/ebs/duracloud/tmp'
 BRIDGE_SSH_USER = 'ec2-user'
 BRIDGE_TOMCAT_USER = 'tomcat'
 BRIDGE_SSH_KEY = '/home/dan/bridge/ssh.pem'
-MY_DOWNLOAD_LOCATION = '/home/dan/bridge/bags'
+#MY_DOWNLOAD_LOCATION = '/home/dan/bridge/bags'
+MY_DOWNLOAD_LOCATION = '/home/tdr/bags'
 SNAPSHOTS = []
 RESTORES = []
 obj_id = ""
@@ -161,7 +166,9 @@ def makeDPNBag(snapshotId):
     tar["-cf", MY_DOWNLOAD_LOCATION + "/" + obj_id + ".tar", "-C", bag_directory, "."]()
     # cleanup the extracted directory
     rm["-rf", bag_directory]()
+
     print ("Done making DPN bag!")
+    print ("Path to DPN Bag: " + MY_DOWNLOAD_LOCATION + "/" + obj_id + ".tar")
 
 def printSnapshotInfo(s, details, contents):
     print ("Snapshot: " + s.get("snapshotId"))
@@ -276,8 +283,10 @@ def ingestSnapshots():
             print ("\tCleaning up remote tar file: " + r_tar_filename)
             r_rm = remote["rm"]
             r_rm["-rf", r_tar_filename]()
+
             # extract the tar, turn it into a DPN bag, and tar it back up
             makeDPNBag(snapshotId)
+
             # TODO: put it in TPN (stash it in iRODS)
             # TODO: tell DPN to come get it (make the DPN rest calls)
             # tell bridge we're done
@@ -293,19 +302,23 @@ def restoreSnapshots():
     getRestores()
 
 def dpn_ingest():
+
     global obj_id, bridge_snapshot_path
+
     print("Obj Id " + obj_id)
 
+    # Compute path to the bag
     obj_path = MY_DOWNLOAD_LOCATION + "/" + obj_id + ".tar"
+
+    # Compute some info needed for the DPN bag record and transfer record
     file_size = os.path.getsize(obj_path)
     fixity = hashlib.sha256(open(obj_path, 'rb').read()).hexdigest()
+
     print("Fixity " + fixity + " file_size " + str(file_size))
 
     # Create a dpn-rest client
 
     myclient = client.Client(dpn_rest_settings, dpn_rest_settings.DEV)
-
-    # I bet we need to add a fixity parameter
 
     try:
         response = myclient.create_bag_entry(obj_id, 1024, 'D', fixity, bridge_snapshot_path )
@@ -321,22 +334,45 @@ def dpn_ingest():
 
     try:
         # obj_id, bag_size, username, fixity
-        response = myclient.create_transfer_request(obj_id, 1024, 'aptrust', fixity)
+        response = myclient.create_transfer_request(obj_id, 1024, 'tdr', fixity)
     except Exception as ex:
         print("Error: " +  str(ex))
         sys.exit(0)
 
-    pprint.pprint(response)
+#    pprint.pprint(response)
 
 
+def copy_bag_to_irods():
+    global obj_id
+
+    obj_path = MY_DOWNLOAD_LOCATION + "/" + obj_id + ".tar"
+    print ("\nCopy bag to irods - path: " + obj_path)
+
+    basename = os.path.basename(obj_path)
+
+    print("Basename: " + basename)
+
+    irods_dir = basename[0:2]
+
+    print("Irods dir: " + irods_dir)
+
+    # Set up output file
+
+    opath = '/corralZ/home/tdl-utexas/tdr/' + irods_dir + "/" + basename
+    print("Path " + opath)
+
+    # Copy file to iRods
+    ret = subprocess.check_output(["iput", obj_path, opath])
+
+    print("Return from iput: " + str(ret))
 
 # main program
 compileMe()
 ingestSnapshots()
 
+copy_bag_to_irods()
 dpn_ingest()
 
 #restoreSnapshots()
-#getSnapshots()
 
 
