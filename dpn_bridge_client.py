@@ -344,7 +344,7 @@ def dpn_ingest():
 
 def copy_bag_to_irods():
     global obj_id
-
+    
     obj_path = MY_DOWNLOAD_LOCATION + "/" + obj_id + ".tar"
     print ("\nCopy bag to irods - path: " + obj_path)
 
@@ -369,6 +369,10 @@ def copy_bag_to_irods():
 # main program
 compileMe()
 ingestSnapshots()
+
+if(obj_id == ""):
+    print("Nothing to ingest")
+    exit() 
 
 copy_bag_to_irods()
 dpn_ingest()
