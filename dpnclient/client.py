@@ -64,7 +64,7 @@ class Client(BaseClient):
             
         return True
 
-    def create_bag_entry(self, obj_id, bag_size, bag_type):
+    def create_bag_entry(self, obj_id, bag_size, bag_type, fixity):
         """
         Creates a new registry entry on your own node. You must be admin
         to do this, and you cannot create registry entries on other nodes.
@@ -88,7 +88,7 @@ class Client(BaseClient):
             "original_node": self.my_node['namespace'],
             "admin_node": self.my_node['namespace'],
             "uuid": obj_id,
-            "fixities": [{"algorithm":"sha256", "digest":"ou812"}],
+            "fixities": [{"algorithm":"sha256", "digest":fixity}],
             "local_id": None,
             "version_number": 1,
             "created_at": timestamp,
@@ -151,17 +151,9 @@ class Client(BaseClient):
         :raises RequestException: Check the response property for details.
         """
         
-        # Get the node info from the database
-        
         other_node = self.nodes_by_namespace[remote_node_namespace]
         url = other_node['api_root']
-        
-        # Get the API key from the config file
-        
         api_key = self.settings.KEYS[remote_node_namespace]
-        
-        # Create a base client object to do the dirty work
-        
         client = BaseClient(url, api_key)
         page_num = 0
         xfer_requests = []
@@ -175,7 +167,6 @@ class Client(BaseClient):
                                             page=page_num)
             data = response.json()
             xfer_requests.extend(data['results'])
-
             if len(xfer_requests) >= data['count']:
                 break
 
