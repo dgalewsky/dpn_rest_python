@@ -10,7 +10,6 @@ import dpn_rest_settings
 import hashlib
 import os, sys
 import subprocess, logging
-from irods_utils import copy_bag_to_irods
 
 class dpn_replicating_node:
 
