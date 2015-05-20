@@ -64,7 +64,7 @@ class Client(BaseClient):
             
         return True
 
-    def create_bag_entry(self, obj_id, bag_size, bag_type, fixity):
+    def create_bag_entry(self, obj_id, bag_size, bag_type, fixity, local_id):
         """
         Creates a new registry entry on your own node. You must be admin
         to do this, and you cannot create registry entries on other nodes.
@@ -89,7 +89,7 @@ class Client(BaseClient):
             "admin_node": self.my_node['namespace'],
             "uuid": obj_id,
             "fixities": [{"algorithm":"sha256", "digest":fixity}],
-            "local_id": None,
+            "local_id": local_id,
             "version_number": 1,
             "created_at": timestamp,
             "updated_at": timestamp,
@@ -124,7 +124,7 @@ class Client(BaseClient):
             raise ValueError("username must be a non-empty string")
         if not isinstance(fixity, str) or fixity.strip() == "":
             raise ValueError("fixity must be a non-empty string")
-        link = "{0}@{1}:{2}".format(username, self.rsync_host, obj_id)
+        link = "{0}@{1}:/home/{0}/bags/{2}".format(username, self.rsync_host, obj_id + ".tar")
         xfer_req = {
             "uuid": obj_id,
             "link": link,
