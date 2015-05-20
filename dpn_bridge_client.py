@@ -27,7 +27,7 @@ BRIDGE_SSH_USER = 'ec2-user'
 BRIDGE_TOMCAT_USER = 'tomcat'
 BRIDGE_SSH_KEY = '/home/dan/bridge/ssh.pem'
 #MY_DOWNLOAD_LOCATION = '/home/dan/bridge/bags'
-MY_DOWNLOAD_LOCATION = '/home/tdr/bags'
+MY_DOWNLOAD_LOCATION = '/dpn/bags'
 SNAPSHOTS = []
 RESTORES = []
 obj_id = ""
@@ -321,13 +321,14 @@ def dpn_ingest():
     myclient = client.Client(dpn_rest_settings, dpn_rest_settings.DEV)
 
     try:
-        response = myclient.create_bag_entry(obj_id, 1024, 'D', fixity, bridge_snapshot_path )
+        response = myclient.create_bag_entry(obj_id, file_size, 'D', fixity, bridge_snapshot_path )
     except Exception as ex:
         print("Error: " +  str(ex))
         sys.exit(0)
 
     # If all goes well - print the response.
 
+    print("Bag Created. Response: ")
     pprint.pprint(response)
 
     # Create a transfer

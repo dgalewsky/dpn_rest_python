@@ -124,7 +124,7 @@ class Client(BaseClient):
             raise ValueError("username must be a non-empty string")
         if not isinstance(fixity, str) or fixity.strip() == "":
             raise ValueError("fixity must be a non-empty string")
-        link = "{0}@{1}:/home/{0}/bags/{2}".format(username, self.rsync_host, obj_id + ".tar")
+        link = "{0}@{1}:/dpn/bags/{2}".format(username, self.rsync_host, obj_id + ".tar")
         xfer_req = {
             "uuid": obj_id,
             "link": link,
