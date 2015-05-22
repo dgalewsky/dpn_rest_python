@@ -10,6 +10,7 @@ import dpn_rest_settings
 import hashlib
 import os, sys
 import subprocess, logging
+import pprint
 
 class dpn_replicating_node:
 
@@ -32,7 +33,10 @@ class dpn_replicating_node:
             # download the file via rsync
             print("Downloading {0}".format(link))
             local_path = self.copy_file(link)
-            
+
+            if (local_path == ""):
+                return
+    
             # calculate the checksum
             checksum = util.digest(local_path, "sha256")
             
@@ -49,6 +53,9 @@ class dpn_replicating_node:
         try:
             with subprocess.Popen(command, stdout=subprocess.PIPE) as proc:
                 print(str(proc.communicate()[0]))
+            if (os.path.isfile(dst) == False):
+                print("Error downloading file: " + dst)
+                return ""
             return dst
 
         except Exception as err:
@@ -67,7 +74,8 @@ if __name__ == "__main__":
         print("ERROR Transfer failed: {0}".format(err))
         sys.exit(0)        
 
-    # DG    
-#    import pdb; pdb.set_trace() 
+    # Iterate all of the servers in the KEYS dict in the settings file
+    for key in dpn_rest_settings.KEYS:
+        print ("Polling Server: " + key)
 
-    xfer.replicate_files("tdr")
+        xfer.replicate_files(key)

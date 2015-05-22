@@ -334,8 +334,15 @@ def dpn_ingest():
     # Create a transfer
 
     try:
-        # obj_id, bag_size, username, fixity
-        response = myclient.create_transfer_request(obj_id, 1024, 'tdr', fixity)
+
+
+
+        # Iterate all of the servers in the KEYS dict in the settings file
+        for key in dpn_rest_settings.KEYS:
+            print ("Creating transfer for: " + key)
+
+            # obj_id, bag_size, username, fixity
+            response = myclient.create_transfer_request(obj_id, file_size, key, fixity)
     except Exception as ex:
         print("Error: " +  str(ex))
         sys.exit(0)
